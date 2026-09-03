@@ -13,7 +13,7 @@ fn screen_y(y: f32, v: *const cad.Viewport) i32 {
     return v.pixel_height - convert_to_screen_coord(y, v.min_y, v.max_y, v.pixel_height);
 }
 
-pub fn drawSegment(s: *const cad.Segment, v: *const cad.Viewport, color: rl.Color) void {
+fn drawSegment(s: *const cad.Segment, v: *const cad.Viewport, color: rl.Color) void {
     rl.drawLine(
         screen_x(s.start.x, v),
         screen_y(s.start.y, v),
@@ -21,4 +21,10 @@ pub fn drawSegment(s: *const cad.Segment, v: *const cad.Viewport, color: rl.Colo
         screen_y(s.end.y, v),
         color,
     );
+}
+
+pub fn drawScene(scene: *const cad.Scene, v: *const cad.Viewport, color: rl.Color) void {
+    for (scene.segments.items) |s| {
+        drawSegment(&s, v, color);
+    }
 }

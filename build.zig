@@ -8,6 +8,7 @@ pub fn build(b: *std.Build) !void {
     const raylib_dep = b.dependency("raylib_zig", .{
         .target = target,
         .optimize = optimize,
+        .linux_display_backend = .Both,
     });
     const raylib = raylib_dep.module("raylib");
     const raylib_artifact = raylib_dep.artifact("raylib");
@@ -67,6 +68,8 @@ pub fn build(b: *std.Build) !void {
         const exe = b.addExecutable(.{
             .name = "zig-cad",
             .root_module = exe_mod,
+            .use_llvm = true,
+            .use_lld = true,
         });
         b.installArtifact(exe);
 
@@ -84,4 +87,3 @@ pub fn build(b: *std.Build) !void {
         run_step.dependOn(&run_cmd.step);
     }
 }
-
