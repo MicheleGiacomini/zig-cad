@@ -86,4 +86,27 @@ pub fn build(b: *std.Build) !void {
 
         run_step.dependOn(&run_cmd.step);
     }
+
+    // One `zig build test` runs every module's tests. Each addTest only sees
+    // tests reachable from that module's root (see the `test { _ = @import }`
+    // collectors in those files).
+    const test_step = b.step("test", "Run all tests");
+    if (target.query.os_tag != .emscripten) {
+        addModuleTests(b, test_step, "cad", cad_mod);
+    }
+}
+
+fn addModuleTests(
+    b: *std.Build,
+    test_step: *std.Build.Step,
+    name: []const u8,
+    root_module: *std.Build.Module,
+) void {
+    const tests = b.addTest(.{
+        .name = name,
+        .root_module = root_module,
+        // Same LLVM workaround as the app: self-hosted backend + GCC 16 crt.
+        .use_llvm = true,
+    });
+    test_step.dependOn(&b.addRunArtifact(tests).step);
 }

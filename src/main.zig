@@ -5,40 +5,6 @@ const rl = @import("raylib");
 const cad = @import("cad");
 const draw = @import("draw.zig");
 
-const points = [_]cad.Point{
-    cad.Point.init(-1, 0),
-    cad.Point.init(1, 0),
-    cad.Point.init(0, -1),
-    cad.Point.init(0, 1),
-};
-
-const lines = [_]cad.Segment{
-    cad.Segment.init(
-        &points[0],
-        &points[1],
-    ),
-    cad.Segment.init(
-        &points[2],
-        &points[3],
-    ),
-    cad.Segment.init(
-        &points[1],
-        &points[3],
-    ),
-    cad.Segment.init(
-        &points[3],
-        &points[0],
-    ),
-    cad.Segment.init(
-        &points[0],
-        &points[2],
-    ),
-    cad.Segment.init(
-        &points[2],
-        &points[1],
-    ),
-};
-
 pub fn main() anyerror!void {
     // Initialization
     //--------------------------------------------------------------------------------------
@@ -49,9 +15,17 @@ pub fn main() anyerror!void {
 
     var scene = cad.Scene.init(gpa);
 
-    for (lines) |line| {
-        try scene.addSegment(line.start, line.end);
-    }
+    const p1 = try scene.addPoint(-1, 0);
+    const p2 = try scene.addPoint(1, 0);
+    const p3 = try scene.addPoint(0, -1);
+    const p4 = try scene.addPoint(0, 1);
+
+    _ = try scene.addSegment(p1, p2);
+    _ = try scene.addSegment(p3, p4);
+    _ = try scene.addSegment(p2, p4);
+    _ = try scene.addSegment(p4, p1);
+    _ = try scene.addSegment(p1, p3);
+    _ = try scene.addSegment(p3, p2);
 
     var v = cad.Viewport.init_from_width(
         -0.5,
