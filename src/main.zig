@@ -3,7 +3,8 @@
 const std = @import("std");
 const rl = @import("raylib");
 const cad = @import("cad");
-const draw = @import("draw.zig");
+const draw = @import("draw");
+const ui = @import("ui");
 
 pub fn main() anyerror!void {
     // Initialization
@@ -35,10 +36,30 @@ pub fn main() anyerror!void {
         screenHeight,
     );
 
+    rl.setConfigFlags(.{ .window_resizable = true });
+
     rl.initWindow(screenWidth, screenHeight, "raylib-zig [core] example - basic window");
     defer rl.closeWindow(); // Close window and OpenGL context
 
     rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
+    //
+    const settings: ui.UISettings = .{
+        .initiate_drag_distance = 5,
+        .zoom_speed = 1.1,
+    };
+
+    const layout: ui.layout.Layout = .{
+        .toolbar_height = 50,
+    };
+
+    var state = ui.state.State.init(&scene, &v);
+
+    var frame_state = ui.frameState.FrameState.init(
+        rl.getMouseX(),
+        rl.getMouseY(),
+        rl.getRenderWidth(),
+        rl.getRenderHeight(),
+    );
     //--------------------------------------------------------------------------------------
 
     // Main game loop
@@ -55,32 +76,31 @@ pub fn main() anyerror!void {
 
         rl.clearBackground(.white);
 
-        rl.drawText("Congrats! You created your first window!", 190, 200, 20, .light_gray);
+        ui.updateFrameState(
+            &frame_state,
+            &settings,
+        );
 
-        // zoom
+        ui.commands.baseUpdateFrame(&state, &frame_state, &settings);
 
-        const mouseWheelMove = rl.getMouseWheelMove();
+        ui.updateState(&state, &frame_state, &layout);
 
-        if (mouseWheelMove != 0) {
-            const mouse_x = rl.getMouseX();
-            const mouse_y = rl.getMouseY();
+        const vp_bounds = layout.viewPortBounds(&frame_state);
 
-            const zoom_speed = 1.1;
+        draw.scene(&scene, &v, vp_bounds.tl.x, vp_bounds.tl.y, .blue);
 
-            const factor = @exp(@log(zoom_speed) * mouseWheelMove);
-
-            v.zoom(factor, mouse_x, mouse_y);
-        }
-
-        // pan
-
-        if (rl.isMouseButtonPressed(.left) or rl.isMouseButtonDown(.left) or rl.isMouseButtonReleased(.left)) {
-            const delta = rl.getMouseDelta();
-            v.move(-delta.x, -delta.y);
-        }
-
-        draw.drawScene(&scene, &v, .blue);
+        draw_toolbar(&layout, &frame_state);
 
         //----------------------------------------------------------------------------------
     }
+}
+
+fn draw_toolbar(layout: *const ui.layout.Layout, frame_state: *ui.frameState.FrameState) void {
+    const bar = layout.toolBarBounds(frame_state);
+    const bar_rect = bar.toRect();
+    rl.drawRectangle(bar.tl.x, bar.tl.y, bar.width, bar.height, .yellow);
+    if (ui.widgets.button(.{ .x = 5, .y = 5, .width = 80, .height = 40 }, "Test", frame_state)) {
+        std.debug.print("Button pressed", .{});
+    }
+    ui.widgets.absorbPointer(bar_rect, frame_state);
 }

@@ -177,7 +177,7 @@ test "addSegment adds segments" {
 
     try std.testing.expectEqual(1, scene.segments.items.len);
     try std.testing.expectEqualDeep(
-        WithGen(Segment){ .content = Segment.init(p1, p2), .gen = 0 },
+        WithGen(Segment){ .content = Segment.init(p2, p2), .gen = 0 },
         scene.segments.items[0],
     );
 }

@@ -75,11 +75,28 @@ pub const Viewport = struct {
     }
 
     /// Move viewport by given amount of pixels, dx positive to the right, dy positive down.
-    pub fn move(self: *Viewport, dx_pixles: f32, dy_pixels: f32) void {
+    pub fn move(self: *Viewport, dx_pixles: i32, dy_pixels: i32) void {
         const pp = pixel_pitch(self.width(), self.pixel_width);
-        self.min_x += dx_pixles * pp;
-        self.max_x += dx_pixles * pp;
-        self.min_y += -dy_pixels * pp;
-        self.max_y += -dy_pixels * pp;
+        self.min_x += @as(f32, @floatFromInt(dx_pixles)) * pp;
+        self.max_x += @as(f32, @floatFromInt(dx_pixles)) * pp;
+        self.min_y += @as(f32, @floatFromInt(-dy_pixels)) * pp;
+        self.max_y += @as(f32, @floatFromInt(-dy_pixels)) * pp;
+    }
+
+    pub fn updateWidthHeight(self: *Viewport, newPixelWidth: i32, newPixelHeight: i32) void {
+        const pp = pixel_pitch(self.width(), self.pixel_width);
+        const new_width = @as(f32, @floatFromInt(newPixelWidth)) * pp;
+        const new_height = @as(f32, @floatFromInt(newPixelHeight)) * pp;
+        const c_x = (self.max_x + self.min_x) / 2;
+        const c_y = (self.max_y + self.min_y) / 2;
+        const new_min_x = c_x - new_width / 2;
+        const new_min_y = c_y - new_height / 2;
+        const new_max_x = new_min_x + new_width;
+        self.min_x = new_min_x;
+        self.min_y = new_min_y;
+        self.max_x = new_max_x;
+        self.pixel_width = newPixelWidth;
+        self.pixel_height = newPixelHeight;
+        self.update_max_y();
     }
 };
